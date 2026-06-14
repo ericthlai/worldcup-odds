@@ -272,14 +272,45 @@ var STARS_PLAYERS = [
 var MARQUEE_DUELS = [[0, 1], [2, 3], [4, 5], [6, 11], [8, 9], [18, 1]];
 
 /* ---------------- helpers ------------------------------------------------ */
+// English display names. TEAMS holds only [zhName, flag] and VEN only Chinese
+// cities, so EN mode reads these maps. CUR_LANG is set by render() each cycle so
+// the helpers don't need a lang arg threaded through every call site.
+var CUR_LANG = 'zh';
+var EN_TEAM = {
+  mex: 'Mexico', rsa: 'South Africa', kor: 'South Korea', cze: 'Czechia', can: 'Canada',
+  bih: 'Bosnia & Herz.', qat: 'Qatar', sui: 'Switzerland', bra: 'Brazil', mar: 'Morocco',
+  hai: 'Haiti', sco: 'Scotland', usa: 'USA', par: 'Paraguay', aus: 'Australia', tur: 'Türkiye',
+  ger: 'Germany', cuw: 'Curaçao', civ: "Côte d'Ivoire", ecu: 'Ecuador', ned: 'Netherlands',
+  jpn: 'Japan', swe: 'Sweden', tun: 'Tunisia', bel: 'Belgium', egy: 'Egypt', irn: 'Iran',
+  nzl: 'New Zealand', esp: 'Spain', cpv: 'Cape Verde', ksa: 'Saudi Arabia', uru: 'Uruguay',
+  fra: 'France', sen: 'Senegal', irq: 'Iraq', nor: 'Norway', arg: 'Argentina', alg: 'Algeria',
+  aut: 'Austria', jor: 'Jordan', por: 'Portugal', cod: 'DR Congo', uzb: 'Uzbekistan',
+  col: 'Colombia', eng: 'England', cro: 'Croatia', gha: 'Ghana', pan: 'Panama'
+};
+var EN_CITY = {
+  sofi: 'Los Angeles', levis: 'Santa Clara', lumen: 'Seattle', metlife: 'New York/NJ',
+  gillette: 'Boston', linc: 'Philadelphia', mbs: 'Atlanta', hardrock: 'Miami', nrg: 'Houston',
+  att: 'Dallas', arrowhead: 'Kansas City', azteca: 'Mexico City', bbva: 'Monterrey',
+  bmo: 'Toronto', bcplace: 'Vancouver'
+};
 function teamName(code, lang) {
   var t = WC.TEAMS[code];
   if (!t) return code || '?';
-  return t[1] + ' ' + t[0]; // flag + zh always (names are short, recognizable)
+  lang = lang || CUR_LANG;
+  return t[1] + ' ' + (lang === 'en' && EN_TEAM[code] ? EN_TEAM[code] : t[0]);
 }
 function flag(code) { var t = WC.TEAMS[code]; return t ? t[1] : '🏳️'; }
-function shortName(code) { var t = WC.TEAMS[code]; return t ? t[0] : (code || '?'); }
+function shortName(code, lang) {
+  var t = WC.TEAMS[code]; if (!t) return code || '?';
+  lang = lang || CUR_LANG;
+  return (lang === 'en' && EN_TEAM[code]) ? EN_TEAM[code] : t[0];
+}
 function venName(v, idx) { var V = WC.VEN[v]; return V ? V[idx] : v; }
+function cityName(v, lang) {
+  lang = lang || CUR_LANG;
+  if (lang === 'en' && EN_CITY[v]) return EN_CITY[v];
+  var V = WC.VEN[v]; return V ? V[1] : v;
+}
 function pct(p, dp) { if (p == null || isNaN(p)) return '—'; return (p * 100).toFixed(dp == null ? 1 : dp) + '%'; }
 function fmtDate(d) { var x = new Date(d + 'T12:00:00'); return (x.getMonth() + 1) + '/' + x.getDate(); }
 function weekday(d, lang) {
@@ -494,7 +525,7 @@ App.prototype.refreshMarkets = function (force) {
       // Two-stage fit on a smaller N for speed: temperature pre-step + per-team
       // Elo rake so the sim champion vector can match (and reorder to) the
       // market. Then full re-sim with both temp AND the per-team deltas.
-      return self.calibrateChampionWorker(champ, { N: 8000 }).then(function (fit) {
+      return self.calibrateChampionWorker(champ, { N: 5000, iters: 4, grid: [0.7, 0.9, 1.1, 1.3, 1.5, 1.7, 2.0] }).then(function (fit) {
         var temp = (fit && fit.s) ? fit.s : 1;
         var deltas = (fit && fit.deltas) ? fit.deltas : null;
         // Second pass: rake the deltas toward the reach-stage markets (R16/QF/SF/
@@ -503,7 +534,7 @@ App.prototype.refreshMarkets = function (force) {
         // or the rake errors — never block the blended render.
         var reachMk = self.buildReachMarkets(snap, champ);
         if (reachMk) {
-          return self.calibrateReachWorker(reachMk, { N: 8000, s: temp, deltas: deltas }).then(function (rfit) {
+          return self.calibrateReachWorker(reachMk, { N: 5000, iters: 5, s: temp, deltas: deltas }).then(function (rfit) {
             var rtemp = (rfit && rfit.s) ? rfit.s : temp;
             var rdeltas = (rfit && rfit.deltas) ? rfit.deltas : deltas;
             self.setState({ calib: fit, reachCalib: rfit, temp: rtemp, calibDeltas: rdeltas });
@@ -670,6 +701,7 @@ App.prototype.openPath = function (code) {
 App.prototype.render = function () {
   var st = this.state || {};
   var lang = (st.lang === 'en' || st.lang === 'zh') ? st.lang : 'zh';
+  CUR_LANG = lang; // helpers (teamName/shortName/cityName) read this
   var T = I18N[lang];
   var self = this;
 
@@ -695,20 +727,23 @@ App.prototype.render = function () {
   ${this.renderSheet(T, lang)}
   <footer style="padding:22px 16px calc(34px + env(safe-area-inset-bottom));text-align:center;font-size:11px;color:#6F6856;line-height:1.7">
     ${T.footer}
-    <div style="margin-top:8px"><button class="pressable" onClick=${function () { self.setLang(); }} style="background:none;border:1px solid #D5CEB8;color:#6B7263;font-weight:600;border-radius:7px;padding:4px 12px;cursor:pointer">${T.lang}</button></div>
   </footer>
 </div>`;
 };
 
 /* ---- header (accent band reused from reference) ---- */
 App.prototype.renderHeader = function (T, lang) {
+  var self = this;
   return html`
 <div style="position:relative;overflow:hidden;background:#142019;color:#F4F0E4;padding:calc(22px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) 18px calc(18px + env(safe-area-inset-left))">
   <span style="position:absolute;right:-12px;top:-40px;font-family:'Anton',sans-serif;font-size:190px;line-height:1;color:rgba(244,240,228,.07);letter-spacing:-6px;pointer-events:none">26</span>
+  <button class="pressable" onClick=${function () { self.setLang(); }} aria-label="language" style="position:absolute;top:calc(16px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));z-index:3;background:rgba(244,240,228,.12);border:1px solid rgba(244,240,228,.28);color:#F4F0E4;font-weight:700;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:12px;letter-spacing:1px;font-family:'Barlow','Noto Sans SC',sans-serif">🌐 ${T.lang}</button>
   <div style="display:flex;gap:8px;align-items:center;font-size:11px;letter-spacing:2.5px;color:#9FB8A8;font-weight:600;font-family:'Barlow',sans-serif">
     <span>${T.window}</span><span style="width:4px;height:4px;border-radius:50%;background:#C8332B"></span><span>WORLDCUP<span style="color:#E8C25A">ODDS</span></span>
   </div>
-  <div style="margin-top:9px;font-family:'Barlow Condensed','Noto Sans SC',sans-serif;font-weight:700;font-size:clamp(30px,7vw,44px);line-height:1.05;letter-spacing:.5px">世界杯 <span style="font-family:'Anton',sans-serif;color:#E8C25A;letter-spacing:1px">2026</span> 实时概率 · 看球买票</div>
+  <div style="margin-top:9px;font-family:'Barlow Condensed','Noto Sans SC',sans-serif;font-weight:700;font-size:clamp(30px,7vw,44px);line-height:1.05;letter-spacing:.5px">${lang === 'en'
+    ? html`World Cup <span style="font-family:'Anton',sans-serif;color:#E8C25A;letter-spacing:1px">2026</span> Live Odds · Pick Your Ticket`
+    : html`世界杯 <span style="font-family:'Anton',sans-serif;color:#E8C25A;letter-spacing:1px">2026</span> 实时概率 · 看球买票`}</div>
   <div style="margin-top:8px;font-size:12.5px;color:#B9C4B6">${T.tagline}</div>
 </div>
 <div style="height:5px;display:flex"><i style="flex:1;background:#C8332B"></i><i style="flex:1;background:#0E8C4F"></i><i style="flex:1;background:#1D5FBF"></i></div>`;
@@ -792,7 +827,7 @@ App.prototype.renderSheet = function (T, lang) {
       .filter(function (c) {
         if (!q) return true;
         var t = WC.TEAMS[c];
-        var hay = ((t ? t[0] : '') + ' ' + (t ? (t[2] || '') : '') + ' ' + c).toLowerCase();
+        var hay = ((t ? t[0] : '') + ' ' + (EN_TEAM[c] || '') + ' ' + c).toLowerCase();
         return hay.indexOf(q) >= 0;
       });
   }
@@ -991,7 +1026,7 @@ App.prototype.renderRadar = function (T, lang) {
             <span style="flex:1"></span>
             <span style="font-family:'Anton',sans-serif;font-size:22px;color:${best ? '#B8860B' : '#191D17'}">${pct(m.prob, m.prob < 0.1 ? 2 : 1)}</span>
           </div>
-          <div style="font-size:12.5px;color:#6B7263;margin-top:5px">📍 <b style="color:#191D17;font-weight:600">${m.venueName}</b> · ${m.city}</div>
+          <div style="font-size:12.5px;color:#6B7263;margin-top:5px">📍 <b style="color:#191D17;font-weight:600">${m.venueName}</b> · ${cityName(m.venue)}</div>
           <div style="font-size:12px;color:#6B7263;margin-top:2px">🗓️ ${fmtDate(m.date)} ${weekday(m.date, lang)}</div>
           <button class="pressable" onClick=${function () { self.scoutMatch(m.matchNo); }} style=${'margin-top:9px;display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:6px 11px;font-size:11.5px;font-weight:700;cursor:pointer;border:1px solid ' + (best ? '#E0C77F' : '#D8D2BE') + ';background:' + (best ? '#FBF4DD' : '#FAF8F0') + ';color:#7A5A00'}>🏟️ ${T.scoutInVenue} →</button>
         </div>
@@ -1075,7 +1110,7 @@ App.prototype.renderVenue = function (T, lang) {
 
   var matchOpts = matches.map(function (m) {
     var Vv = WC.VEN[m.v];
-    return { v: String(m.no), label: 'M' + m.no + ' · ' + roundLabelZh(m.no, lang) + ' · ' + fmtDate(m.d) + ' · ' + (Vv ? Vv[0] : m.v) + ' / ' + (Vv ? Vv[1] : '') };
+    return { v: String(m.no), label: 'M' + m.no + ' · ' + roundLabelZh(m.no, lang) + ' · ' + fmtDate(m.d) + ' · ' + (Vv ? Vv[0] : m.v) + ' / ' + cityName(m.v) };
   });
 
   // keep the selected match valid under the active filter; else fall to first.
@@ -1114,7 +1149,7 @@ App.prototype.renderVenue = function (T, lang) {
       <span style="font-family:'Anton',sans-serif;font-size:18px">${roundLabelZh(sel.no, lang)}</span>
       <span style="font-size:11px;color:#857E68;font-weight:600">M${sel.no}</span>
     </div>
-    <div style="font-size:13.5px;color:#191D17;font-weight:600;margin-top:6px">📍 ${V ? V[0] : sel.v} · ${V ? V[1] : ''}</div>
+    <div style="font-size:13.5px;color:#191D17;font-weight:600;margin-top:6px">📍 ${V ? V[0] : sel.v} · ${cityName(sel.v)}</div>
     <div style="font-size:12.5px;color:#6B7263;margin-top:2px">🗓️ ${fmtDate(sel.d)} ${weekday(sel.d, lang)} · ${sel.d}</div>
     <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:11px;border-top:1px dashed #E0DAC6">
       <div style="flex:none">
@@ -1229,7 +1264,7 @@ App.prototype.renderPath = function (T, lang) {
       </div>
       <div style="padding:9px 12px;display:flex;flex-direction:column;gap:6px">
         ${opp && html`<div style="font-size:13px"><span style="color:#857E68">${T.likelyOpp}:</span> <b>${flag(opp.code)} ${shortName(opp.code)}</b> <span style="color:#857E68;font-size:11.5px">${pct(opp.prob / (pr.reach || 1), 0)}${lang === 'en' ? ' of the time' : ' 的可能'}</span></div>`}
-        ${V && html`<div style="font-size:13px"><span style="color:#857E68">${T.likelyVenue}:</span> <b>${V[0]}</b> · ${V[1]} <span style="color:#857E68;font-size:11.5px">${ven ? pct(ven.prob / (pr.reach || 1), 0) : ''}</span></div>`}
+        ${V && html`<div style="font-size:13px"><span style="color:#857E68">${T.likelyVenue}:</span> <b>${V[0]}</b> · ${cityName(ven.venue)} <span style="color:#857E68;font-size:11.5px">${ven ? pct(ven.prob / (pr.reach || 1), 0) : ''}</span></div>`}
       </div>
     </div>`;
   })}
