@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WorldcupOdds · 世界杯 2026 实时概率 + 看球买票</title>
+<meta property="og:title" content="WorldcupOdds · 世界杯 2026">
+<meta property="og:description" content="哪些球队可能在哪、什么时候碰面 — 实时概率帮你决定买哪张票。模型 ⊕ Polymarket,自动更新。">
+<meta name="theme-color" content="#142019">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎟️</text></svg>">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:rgba(20,32,25,.08)}
+  html,body{overflow-x:hidden;max-width:100%}
+  body{margin:0;background:#F2EEE2;color:#191D17;font-family:'Barlow','Noto Sans SC',-apple-system,'PingFang SC','Helvetica Neue',sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior-y:none}
+  @keyframes fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .pressable:active{transform:scale(.96)}
+  .presslight:active{transform:scale(.99)}
+  .rowtap:active{background:#EDE8D8 !important}
+  .shim{background:linear-gradient(90deg,#EAE5D5 25%,#F3EFE2 50%,#EAE5D5 75%);background-size:800px 100%;animation:shimmer 1.3s linear infinite}
+  .livedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#0E8C4F;animation:pulse 1.6s ease-in-out infinite}
+  select,input,button{font-family:inherit}
+  ::-webkit-scrollbar{height:7px;width:7px}
+  ::-webkit-scrollbar-thumb{background:#D5CEB8;border-radius:4px}
+</style>
+<script src="./preact.min.umd.js"></script>
+<script src="./htm.umd.js"></script>
+<script src="./data.js"></script>
+<script src="./engine.js"></script>
+<script src="./markets.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script src="./app.js"></script>
+</body>
+</html>

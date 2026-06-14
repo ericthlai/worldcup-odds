@@ -1,0 +1,13 @@
+# local dev server log
+server.log
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# scratch
+_*.js
+.claude/
