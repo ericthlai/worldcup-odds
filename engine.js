@@ -779,6 +779,159 @@
     return { s: s, deltas: deltas, kl: lastKL, championSim: champSim, iters: iters };
   }
 
+  // -------------------------------------------------------------------------
+  // calibrateReach(reachMarkets, opts) — multi-stage IPF (iterative proportional
+  // fitting) that rakes ONE per-team Elo delta against SEVERAL stage marginals
+  // at once (reach-R16 / QF / SF / Final / champion), not just the champion tip.
+  //
+  // Why this exists (brief item 2): champion-only calibration sharpens the funnel
+  // TIP but cannot add the early-round survival mass the market prices for
+  // "reach QF/SF", and it has near-zero leverage on dark horses (e.g. Norway)
+  // whose value lives entirely in reach markets — their tiny champion share means
+  // the champion rake barely moves them. markets.js already fetches & basket-
+  // normalizes the reach baskets (reachR16->16, reachQF->8, reachSF->4,
+  // reachFinal->2, champion->1) but the app only displayed them. This stage
+  // actually tilts the sim toward them.
+  //
+  // CRITICAL — rake in ELO SPACE (one delta per team), never per-stage additive
+  // probability nudges. A single Elo delta shifts a team's WHOLE funnel
+  // coherently, so the champion<=final<=sf<=qf<=r16<=r32 monotonicity invariant
+  // is preserved automatically. Per-stage prob nudges would violate it and break
+  // the test suite.
+  //
+  // reachMarkets: {
+  //   reachR16:   {code->p, basket-summing to ~16},   (optional)
+  //   reachQF:    {code->p, ~8},                       (optional)
+  //   reachSF:    {code->p, ~4},                       (optional)
+  //   reachFinal: {code->p, ~2},                       (optional)
+  //   champion:   {code->p, ~1}                        (optional)
+  // }
+  // Any subset may be supplied; absent baskets are skipped. Each is re-normalized
+  // to its slot count defensively so callers can pass raw or pre-normalized maps.
+  //
+  // opts: {
+  //   N (default 8000), seed,
+  //   iters (default 7), K (default 70), maxDelta (default 220),
+  //   s (skip the temperature pre-step and use this fixed temperature),
+  //   grid (for the temperature pre-step when s not supplied),
+  //   deltas (warm-start per-team Elo deltas — e.g. reuse calibrateChampion's),
+  //   weights ({r16,qf,sf,final,champion} stage weights; later stages weighted
+  //            higher by default so the title signal isn't drowned by bulk
+  //            survival mass)
+  // }
+  //
+  // Returns { s, deltas:{code:elo}, stageErr:{stage:meanAbsPP}, iters }. The
+  // caller then runs the production simulate() with
+  // { temperature:s, elo: <abs Elo from deltaToElo(deltas)> } — i.e. the SAME
+  // eloOverride path calibrateChampion already uses, so app.js recompute() is
+  // unchanged apart from choosing which fit's deltas to feed it.
+  // -------------------------------------------------------------------------
+  var REACH_STAGES = [
+    { key: 'r16', basket: 16 },
+    { key: 'qf', basket: 8 },
+    { key: 'sf', basket: 4 },
+    { key: 'final', basket: 2 },
+    { key: 'champion', basket: 1 }
+  ];
+  // Stage weights for the multi-stage rake. The reach tabs (radar / venue / path)
+  // are the app's core product and live on bulk-survival mass, so R16/QF/SF carry
+  // real weight; champion/final still carry the title signal but don't dominate
+  // (a tip-heavy profile pulls strong teams DOWN at QF when chasing the
+  // concentrated champion marginal). Tuned so a coherent reach market closes the
+  // QF-reach gap rather than fighting it.
+  var REACH_DEFAULT_WEIGHTS = { r16: 1.1, qf: 1.3, sf: 1.2, final: 1.0, champion: 1.0 };
+
+  function calibrateReach(reachMarkets, opts) {
+    opts = opts || {};
+    reachMarkets = reachMarkets || {};
+    var N = opts.N || 8000;
+    var seed = (opts.seed >>> 0) || 0x9E3779B9;
+    var iters = (opts.iters != null) ? opts.iters : 7;
+    var K = (opts.K != null) ? opts.K : 70;
+    var maxDelta = (opts.maxDelta != null) ? opts.maxDelta : 220;
+    var weights = opts.weights || REACH_DEFAULT_WEIGHTS;
+    var EPS = 1e-9;
+
+    var codes = Object.keys(WC.TEAMS);
+
+    // Which stage baskets did the caller actually provide? Re-normalize each to
+    // its slot count defensively (so raw or pre-normalized input both work).
+    var stages = [];
+    for (var si = 0; si < REACH_STAGES.length; si++) {
+      var st = REACH_STAGES[si];
+      var raw = reachMarkets[st.key];
+      if (!raw) continue;
+      var sum = 0;
+      codes.forEach(function (c) { var p = raw[c]; if (p != null && !isNaN(p) && p > 0) sum += p; });
+      if (sum <= 0) continue;
+      var scale = st.basket / sum;
+      var norm = {};
+      codes.forEach(function (c) {
+        var p = raw[c];
+        norm[c] = (p != null && !isNaN(p) && p > 0) ? p * scale : 0;
+      });
+      stages.push({ key: st.key, target: norm, w: (weights[st.key] != null ? weights[st.key] : 1) });
+    }
+    if (!stages.length) throw new Error('calibrateReach: no usable reach baskets supplied');
+
+    // Temperature: fixed if provided, else a coarse champion-style pre-step if a
+    // champion basket exists, else a plain grid pre-step against the latest
+    // stage, else 1.
+    var s;
+    if (typeof opts.s === 'number' && opts.s > 0) {
+      s = opts.s;
+    } else if (reachMarkets.champion) {
+      s = calibrate(reachMarkets.champion, { N: N, seed: seed, grid: opts.grid }).s;
+    } else {
+      // grid-search temperature against the strongest available stage marginal
+      // by re-using calibrate() with that stage as a pseudo-champion target.
+      var pseudo = stages[stages.length - 1].target;
+      s = calibrate(pseudo, { N: N, seed: seed, grid: opts.grid }).s;
+    }
+
+    // Per-team Elo deltas (optionally warm-started from a champion fit).
+    var deltas = {};
+    codes.forEach(function (c) { deltas[c] = 0; });
+    if (opts.deltas) codes.forEach(function (c) {
+      if (typeof opts.deltas[c] === 'number') deltas[c] = opts.deltas[c];
+    });
+
+    var stageErr = {};
+    for (var it = 0; it < iters; it++) {
+      var res = simulate({ N: N, temperature: s, seed: seed, elo: deltaToElo(deltas) });
+      // Accumulate a single weighted log-ratio nudge per team across all stages.
+      var nudge = {};
+      codes.forEach(function (c) { nudge[c] = 0; });
+      var wsum = 0;
+      for (var k = 0; k < stages.length; k++) {
+        var stg = stages[k];
+        wsum += stg.w;
+        var err = 0, errN = 0;
+        for (var ci = 0; ci < codes.length; ci++) {
+          var c = codes[ci];
+          var pm = stg.target[c];
+          if (pm == null) pm = 0;
+          var ps = Math.max(EPS, res.teamStage[c][stg.key]);
+          // softened target with a floor: don't chase teams the market gives ~0
+          var tgt = Math.max(EPS, pm);
+          nudge[c] += stg.w * Math.log(tgt / ps);
+          if (pm > 0) { err += Math.abs(ps - pm); errN++; }
+        }
+        stageErr[stg.key] = errN ? (err / errN) : 0;
+      }
+      // apply the weighted-average nudge as an Elo delta increment, capped.
+      for (var cj = 0; cj < codes.length; cj++) {
+        var cc = codes[cj];
+        var d = deltas[cc] + K * (nudge[cc] / wsum);
+        if (d > maxDelta) d = maxDelta;
+        if (d < -maxDelta) d = -maxDelta;
+        deltas[cc] = d;
+      }
+    }
+
+    return { s: s, deltas: deltas, stageErr: stageErr, iters: iters };
+  }
+
   // Build an Elo override map { code: absoluteElo } from a per-team delta map.
   function deltaToElo(deltas) {
     var elo = {};
@@ -872,6 +1025,8 @@
     simulate: simulate,
     calibrate: calibrate,
     calibrateChampion: calibrateChampion,
+    calibrateReach: calibrateReach,
+    deltaToElo: deltaToElo,
     queryMatchup: queryMatchup,
     queryVenue: queryVenue,
     matchThirdsToSlots: matchThirdsToSlots,

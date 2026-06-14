@@ -11,23 +11,53 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
+  /* ---- design tokens: one source of truth for color / radius / depth ---- */
+  :root{
+    --bg:#F2EEE2; --bg-sunk:#EAE5D5; --surface:#FFFFFF; --surface-2:#FBFAF4;
+    --ink:#191D17; --ink-2:#3D443C; --muted:#6B7263; --faint:#8B8770;
+    --line:#DCD6C2; --line-soft:#F0EBDC;
+    --green:#0E8C4F; --green-d:#0A6E3D; --red:#C8332B; --blue:#1D5FBF;
+    --gold:#E8C25A; --gold-d:#B8860B; --hd:#142019; --hd-2:#1B2A21;
+    --r-sm:9px; --r-md:12px; --r-lg:16px; --sp:4px;
+    --shadow-1:0 1px 2px rgba(20,32,25,.05);
+    --shadow-2:0 2px 8px rgba(20,32,25,.07),0 1px 2px rgba(20,32,25,.05);
+    --shadow-hero:0 6px 22px rgba(184,134,11,.18),0 2px 6px rgba(20,32,25,.10);
+  }
   *{box-sizing:border-box;-webkit-tap-highlight-color:rgba(20,32,25,.08)}
   /* overflow-x:clip (not hidden) prevents horizontal scroll WITHOUT turning <html> into a
      scroll container, which on Chrome hijacks the mouse wheel (scrollbar works, wheel doesn't). */
   html,body{overflow-x:clip;max-width:100%}
-  body{margin:0;background:#F2EEE2;color:#191D17;font-family:'Barlow','Noto Sans SC',-apple-system,'PingFang SC','Helvetica Neue',sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior-y:none}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Barlow','Noto Sans SC',-apple-system,'PingFang SC','Helvetica Neue',sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior-y:none;font-feature-settings:'tnum' 1}
   @keyframes fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes glint{0%,100%{opacity:1}50%{opacity:.55}}
   .pressable:active{transform:scale(.96)}
   .presslight:active{transform:scale(.99)}
+  .rowtap{transition:background .12s ease}
   .rowtap:active{background:#EDE8D8 !important}
-  .shim{background:linear-gradient(90deg,#EAE5D5 25%,#F3EFE2 50%,#EAE5D5 75%);background-size:800px 100%;animation:shimmer 1.3s linear infinite}
-  .livedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#0E8C4F;animation:pulse 1.6s ease-in-out infinite}
+  .lift{transition:transform .18s ease, box-shadow .18s ease}
+  .lift:active{transform:translateY(1px)}
+  @media (hover:hover){.lift:hover{transform:translateY(-1px);box-shadow:var(--shadow-2)}}
+  .shim{background:linear-gradient(90deg,#EAE5D5 25%,#F3EFE2 50%,#EAE5D5 75%);background-size:800px 100%;animation:shimmer 1.5s linear infinite}
+  .livedot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(14,140,79,.18);animation:pulse 1.6s ease-in-out infinite}
+  /* ---- utility classes (referenced from app.js inline class names) ---- */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--shadow-1)}
+  .card-2{box-shadow:var(--shadow-2)}
+  .num{font-family:'Anton',sans-serif;font-feature-settings:'tnum' 1;letter-spacing:.5px}
+  .hd{font-family:'Barlow Condensed','Noto Sans SC',sans-serif}
+  .muted{color:var(--muted)}
+  .bar-track{position:relative;height:10px;border-radius:6px;background:var(--bg-sunk);overflow:hidden;box-shadow:inset 0 1px 1px rgba(20,32,25,.05)}
+  .bar-track > i{display:block;height:100%;border-radius:6px;position:relative}
+  .bar-track > i::after{content:'';position:absolute;inset:0;border-radius:6px;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0))}
+  .bar-tick{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line);z-index:1}
+  .sheet-ov{position:fixed;inset:0;z-index:200;background:rgba(20,32,25,.45);display:flex;flex-direction:column;justify-content:flex-end;animation:fadeup .18s ease}
+  .sheet-pn{background:var(--surface);border-radius:18px 18px 0 0;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 30px rgba(20,32,25,.3)}
   select,input,button{font-family:inherit}
   ::-webkit-scrollbar{height:7px;width:7px}
   ::-webkit-scrollbar-thumb{background:#D5CEB8;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
 </style>
 <script src="./preact.min.umd.js"></script>
 <script src="./htm.umd.js"></script>

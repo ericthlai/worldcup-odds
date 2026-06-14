@@ -11,6 +11,8 @@
  *                                       -> { id, type:'calibrated', fit }
  *   { id, type:'calibrateChampion', championMarket, opts }
  *                                       -> { id, type:'calibratedChampion', fit }
+ *   { id, type:'calibrateReach', reachMarkets, opts }
+ *                                       -> { id, type:'calibratedReach', fit }
  *   { id, type:'verify' }              -> { id, type:'verified',  annexC }
  *
  * On error: { id, type:'error', message }.
@@ -65,6 +67,9 @@
       } else if (msg.type === 'calibrateChampion') {
         var fitC = WCEngine.calibrateChampion(msg.championMarket || {}, msg.opts || {});
         self.postMessage({ id: id, type: 'calibratedChampion', fit: fitC });
+      } else if (msg.type === 'calibrateReach') {
+        var fitR = WCEngine.calibrateReach(msg.reachMarkets || {}, msg.opts || {});
+        self.postMessage({ id: id, type: 'calibratedReach', fit: fitR });
       } else if (msg.type === 'verify') {
         self.postMessage({ id: id, type: 'verified', annexC: WCEngine.verifyAnnexC() });
       } else {

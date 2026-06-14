@@ -155,6 +155,113 @@ check('determinism: same seed -> identical output', deterministic, 'ok');
     'each run contributes exactly 2 auto-advancers/group and 8 best-thirds');
 }
 
+console.log('\n=== calibrateChampion reorders to a market that disagrees with Elo ===');
+// Regression guard (brief item 4): the two-stage per-team Elo rake must be able
+// to REORDER the champion vector to honour a market that disagrees with the raw
+// Elo ordering — a scalar temperature alone never can. We feed a synthetic
+// champion market whose top-5 deliberately inverts several raw-Elo champion
+// pairs (here arg made the clear #1 and bra lifted above esp/eng/fra), then
+// assert the calibrated sim reproduces the market's top-5 ORDER and lands the
+// top-10 within ~1.5pp. N kept modest so CI stays fast.
+{
+  // synthetic de-vigged champion market (sums to 1 over these teams)
+  const synth = {
+    arg: 0.20, bra: 0.16, eng: 0.14, fra: 0.12, esp: 0.10,
+    por: 0.08, ned: 0.06, ger: 0.05, bel: 0.05, uru: 0.04
+  };
+  const synthOrder = Object.keys(synth).sort((a, b) => synth[b] - synth[a]);
+  const synthTop5 = synthOrder.slice(0, 5);
+
+  // confirm the synthetic market actually disagrees with raw Elo (else the test
+  // would be vacuous — temperature alone could pass it).
+  const rawTop5 = codes.map(c => ({ c, p: res.teamStage[c].champion }))
+    .sort((a, b) => b.p - a.p).slice(0, 5).map(x => x.c);
+  const disagrees = synthTop5.join(',') !== rawTop5.join(',');
+  check('synthetic market top-5 disagrees with raw-Elo top-5 (non-vacuous test)',
+    disagrees, `market=${synthTop5.join(',')} rawElo=${rawTop5.join(',')}`);
+
+  const fitC = Engine.calibrateChampion(synth, { N: 8000, seed: 0x9E3779B9 });
+  const calRes = Engine.simulate({
+    N: 8000, seed: 0x9E3779B9, temperature: fitC.s,
+    elo: Engine.deltaToElo(fitC.deltas)
+  });
+  const calOrder = codes.map(c => ({ c, p: calRes.teamStage[c].champion }))
+    .sort((a, b) => b.p - a.p);
+  const calTop5 = calOrder.slice(0, 5).map(x => x.c);
+  check('calibrateChampion reproduces market top-5 ORDER',
+    calTop5.join(',') === synthTop5.join(','),
+    `calibrated=${calTop5.join(',')}  market=${synthTop5.join(',')}`);
+
+  let maxDiff = 0, worst = '';
+  const synthSorted = Object.keys(synth).sort((a, b) => synth[b] - synth[a]).slice(0, 10);
+  for (const c of synthSorted) {
+    const d = Math.abs(calRes.teamStage[c].champion - synth[c]);
+    if (d > maxDiff) { maxDiff = d; worst = c; }
+  }
+  check('calibrated top-10 within ~1.5pp of market',
+    maxDiff < 0.015, `max|sim-mkt|=${(maxDiff * 100).toFixed(2)}pp on ${worst}`);
+}
+
+console.log('\n=== calibrateReach tilts mid-stage reach toward the market (item 2) ===');
+// Smoke + behavioral guard for the new multi-stage IPF entry point. We build a
+// synthetic reach market that wants MORE QF-reach mass on a couple of teams than
+// the raw sim gives, run calibrateReach, then confirm (a) it returns the
+// documented shape, (b) per-team funnel monotonicity survives the Elo-space
+// rake, and (c) the targeted teams' QF reach moves toward the market.
+{
+  const base = Engine.simulate({ N: 8000, seed: 0x9E3779B9 });
+  // de-vigged reach baskets (basket-summing to 16/8/4/2); start from the sim's
+  // own reach, then push two teams up at QF/SF to create a gap to close.
+  function basket(stage, sum, bump) {
+    const o = {};
+    let tot = 0;
+    for (const c of codes) { o[c] = base.teamStage[c][stage]; tot += o[c]; }
+    // renormalize defensively then apply bumps
+    for (const c of codes) o[c] = tot > 0 ? o[c] * sum / tot : 0;
+    if (bump) for (const c of Object.keys(bump)) o[c] = (o[c] || 0) + bump[c];
+    return o;
+  }
+  const reachMarkets = {
+    r16: basket('r16', 16, null),
+    qf: basket('qf', 8, { nor: 0.10, arg: 0.08 }),
+    sf: basket('sf', 4, { nor: 0.05 }),
+    final: basket('final', 2, null),
+    champion: basket('champion', 1, null)
+  };
+  const norQFbefore = base.teamStage.nor.qf;
+  const argQFbefore = base.teamStage.arg.qf;
+
+  const fitR = Engine.calibrateReach(reachMarkets, { N: 8000, seed: 0x9E3779B9, iters: 6 });
+  check('calibrateReach returns {s, deltas, stageErr}',
+    fitR && typeof fitR.s === 'number' && fitR.deltas && fitR.stageErr,
+    `s=${fitR && fitR.s}  stages=${fitR && Object.keys(fitR.stageErr).join(',')}`);
+
+  const reachRes = Engine.simulate({
+    N: 8000, seed: 0x9E3779B9, temperature: fitR.s,
+    elo: Engine.deltaToElo(fitR.deltas)
+  });
+
+  // (b) funnel monotonicity must survive the Elo-space rake
+  let rmono = true, rmd = '';
+  for (const c of codes) {
+    const ts = reachRes.teamStage[c];
+    for (let k = 1; k < ROUND_ORDER.length; k++) {
+      const prev = ts[ROUND_ORDER[k - 1]], cur = ts[ROUND_ORDER[k]];
+      if (cur > prev + 1e-12) { rmono = false; rmd = `${c} ${ROUND_ORDER[k]}=${cur}>${ROUND_ORDER[k - 1]}=${prev}`; break; }
+    }
+    if (!rmono) break;
+  }
+  check('calibrateReach output stays funnel-monotone per team', rmono, rmd || 'ok');
+
+  // (c) targeted teams' QF reach moves toward the (bumped) market
+  const norMoved = reachRes.teamStage.nor.qf > norQFbefore;
+  const argMoved = reachRes.teamStage.arg.qf > argQFbefore;
+  check('calibrateReach lifts targeted QF reach toward market',
+    norMoved && argMoved,
+    `nor ${(norQFbefore * 100).toFixed(1)}%->${(reachRes.teamStage.nor.qf * 100).toFixed(1)}%  ` +
+    `arg ${(argQFbefore * 100).toFixed(1)}%->${(reachRes.teamStage.arg.qf * 100).toFixed(1)}%`);
+}
+
 // Champion vector top-5 for reporting
 const champVec = codes.map(c => ({ c, p: res.teamStage[c].champion }))
   .sort((a, b) => b.p - a.p).slice(0, 5);

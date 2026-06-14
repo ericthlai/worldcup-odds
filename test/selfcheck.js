@@ -1,7 +1,7 @@
 /* Node self-check for engine.js. Run: node selfcheck.js */
 'use strict';
-const E = require('./engine.js');
-const WC = require('./data.js');
+const E = require('../engine.js');
+const WC = require('../data.js');
 
 let fail = 0;
 function ok(name, cond) { console.log((cond ? 'PASS ' : 'FAIL ') + name); if (!cond) fail++; }

@@ -22,8 +22,8 @@
  * rows are read straight from the FIFA PDF and ARE eligibility-legal.
  */
 'use strict';
-var Eng = require('./engine.js');
-var WC = require('./data.js');
+var Eng = require('../engine.js');
+var WC = require('../data.js');
 
 // winner-group order matches the slot match numbers (E,I,A,L,D,G,B,K)
 var SLOTS = Eng._SLOTS;

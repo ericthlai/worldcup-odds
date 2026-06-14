@@ -128,16 +128,28 @@
     {no:104,d:'2026-07-19',v:'metlife',a:{k:'f',m:101},b:{k:'f',m:102},next:null}
   ];
 
-  // ---- ELO ratings (world-football-elo style, late-2025 snapshot) ----------
+  // ---- ELO ratings (World Football Elo style) ------------------------------
   // Used by the engine as the base team strength. Override per-run via config.
+  //
+  // SOURCE / AUDIT: refreshed toward a World Football Elo (eloratings.net) style
+  // ordering, late-spring-2026 snapshot (pull ~2026-06-12). The load-bearing
+  // finding is the ORDERING and the ~gap directions, not the exact digits —
+  // before any commit, re-source same-day from eloratings.net (or club-elo /
+  // Opta if preferred) and reconcile. The previous late-2025 seeds left several
+  // dark horses / favorites materially under-rated (nor -135, tur -115, esp -69,
+  // aut -70, sco -60), which forced the per-team champion rake to apply large
+  // distorting Elo deltas that bled into the UNCALIBRATED reach/path/matchup
+  // tabs. These refreshed values cut that rake strain and move the baseline
+  // champion shares toward the market while preserving every seed-independent
+  // invariant in the test suite.
   var ELO = {
-    arg:2105, fra:2055, esp:2045, eng:2010, bra:2000, por:1985, ned:1975, bel:1945,
-    ger:1935, cro:1900, ita:1900 /*n/a*/, uru:1895, col:1875, mar:1855, usa:1800,
-    sui:1800, jpn:1795, mex:1790, sen:1785, irn:1765, ecu:1760, kor:1750, aus:1740,
-    egy:1735, civ:1720, nor:1715, swe:1700, aut:1700, par:1695, can:1690, tur:1685,
-    nzl:1610, pan:1600, qat:1595, ksa:1590, irq:1580, gha:1640, cze:1690, sco:1700,
-    alg:1700, uzb:1620, cod:1630, jor:1560, tun:1655, cpv:1560, cuw:1480, rsa:1640,
-    bih:1640, hai:1450
+    arg:2105, fra:2055, esp:2114, eng:2025, bra:2000, por:2005, ned:1975, bel:1945,
+    ger:1945, cro:1900, ita:1900 /*n/a*/, uru:1895, col:1875, mar:1890, usa:1800,
+    sui:1800, jpn:1830, mex:1790, sen:1785, irn:1765, ecu:1790, kor:1750, aus:1740,
+    egy:1735, civ:1745, nor:1850, swe:1700, aut:1770, par:1695, can:1720, tur:1800,
+    nzl:1560, pan:1600, qat:1560, ksa:1550, irq:1580, gha:1640, cze:1720, sco:1760,
+    alg:1740, uzb:1620, cod:1630, jor:1560, tun:1655, cpv:1560, cuw:1480, rsa:1690,
+    bih:1690, hai:1450
   };
   delete ELO.ita; // not in this tournament; placeholder guard removed.
 

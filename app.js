@@ -42,7 +42,7 @@ var I18N = {
     sub: '模型 ⊕ Polymarket · 自动更新',
     window: 'JUN 11 — JUL 19',
     tabs: { radar: '明星对阵', venue: '场馆/日期', path: '球队路径', table: '阶段概率' },
-    tabsSub: { radar: '雷达', venue: '浏览器', path: '探索', table: '总表' },
+    tabsSub: { radar: '谁会碰面', venue: '哪场好看', path: '能走多远', table: '全队对比' },
     simming: '模拟中…',
     statusModel: '纯模型 (ELO)',
     statusBlend: '模型 ⊕ Polymarket',
@@ -111,14 +111,50 @@ var I18N = {
     // stages
     st: { r32: '32 强', r16: '16 强', qf: '8 强', sf: '4 强', final: '决赛', champion: '夺冠' },
     footer: '模型校准至 Polymarket,仅供娱乐;以 FIFA 官方为准 · 行情来自 Polymarket · 概率为模型推演',
-    lang: 'EN'
+    lang: 'EN',
+    // goal hint banner
+    goalHint: '想知道买哪张票?选两支球队 → 看「最值得买的票」→ 一键跳到场馆浏览器。',
+    goalHintRadar: '明星对阵',
+    goalHintVenue: '场馆浏览器',
+    dismiss: '知道了',
+    // cross-links + CTA
+    scoutInVenue: '在场馆浏览器查看这场',
+    seeInRadar: '在雷达里看这组对决',
+    openInPath: '看这支球队的路径',
+    // marquee
+    nowPlaying: '热门对决',
+    tryMarquee: '梅西 vs C罗',
+    // pickers / sheet
+    searchPlaceholder: '搜索球队…',
+    searchStarPlaceholder: '搜索球星…',
+    allGroups: '全部',
+    groupSuffix: '组',
+    natTeam: '国家队',
+    closeSheet: '关闭',
+    pickATeam: '点击选择球队',
+    pickAStar: '点击选择球星',
+    // venue location-first
+    byCity: '按城市',
+    byDate: '按日期',
+    allRounds: '全部轮次',
+    matchesHere: '场',
+    regionW: '西区', regionE: '东区', regionC: '中区',
+    sortByStar: '按明星指数',
+    // info popovers
+    meetInfo: '这是模型推演两队在淘汰赛(16/8/4 强、决赛)相遇的概率,综合 20000 次模拟并校准到 Polymarket 行情。同组球队的小组赛相遇不计入。',
+    tempInfo: '温度 = 模型对行情的信任程度。温度越低,越贴近 Polymarket;越高,越接近原始 ELO 模型。',
+    // loading / empty
+    simmingShort: '模拟计算中…',
+    tooEarly: '这场比赛的对阵还太早,无法预测具体球队 — 试试更靠后的轮次。',
+    // what-if
+    whatifSubGeneric: '锁定一个结果,看概率实时变化 — 例如锁阿根廷小组头名'
   },
   en: {
     tagline: 'Which teams · where · when they meet — live odds to pick your tickets',
     sub: 'Model ⊕ Polymarket · auto-updating',
     window: 'JUN 11 — JUL 19',
     tabs: { radar: 'Star Radar', venue: 'Venue/Date', path: 'Team Path', table: 'Stage Odds' },
-    tabsSub: { radar: 'matchups', venue: 'browser', path: 'explorer', table: 'table' },
+    tabsSub: { radar: 'who meets', venue: 'best match', path: 'how far', table: 'compare all' },
     simming: 'Simulating…',
     statusModel: 'Model only (ELO)',
     statusBlend: 'Model ⊕ Polymarket',
@@ -181,7 +217,35 @@ var I18N = {
     activeWhatif: 'Active assumptions',
     st: { r32: 'R32', r16: 'R16', qf: 'QF', sf: 'SF', final: 'Final', champion: 'Champion' },
     footer: 'Model calibrated to Polymarket · for fun only; FIFA is authoritative · odds from Polymarket · probabilities are model output',
-    lang: '中文'
+    lang: '中文',
+    goalHint: 'Want to know which ticket to buy? Pick two teams → see the Best ticket → jump to the Venue browser.',
+    goalHintRadar: 'Star Radar',
+    goalHintVenue: 'Venue browser',
+    dismiss: 'Got it',
+    scoutInVenue: 'Scout this match in the Venue browser',
+    seeInRadar: 'See this duel in the radar',
+    openInPath: 'Open this team’s path',
+    nowPlaying: 'Now playing',
+    tryMarquee: 'Messi vs Ronaldo',
+    searchPlaceholder: 'Search teams…',
+    searchStarPlaceholder: 'Search stars…',
+    allGroups: 'All',
+    groupSuffix: '',
+    natTeam: 'national team',
+    closeSheet: 'Close',
+    pickATeam: 'Tap to pick a team',
+    pickAStar: 'Tap to pick a star',
+    byCity: 'By city',
+    byDate: 'By date',
+    allRounds: 'All rounds',
+    matchesHere: 'matches',
+    regionW: 'West', regionE: 'East', regionC: 'Central',
+    sortByStar: 'By star power',
+    meetInfo: 'The model’s probability the two meet in a knockout (R16/QF/SF/Final), from 20,000 simulations calibrated to Polymarket. A group-stage meeting between same-group teams is not counted.',
+    tempInfo: 'Temperature = how much the model trusts the market vs the raw ELO. Lower hugs Polymarket; higher leans on raw ELO.',
+    simmingShort: 'Simulating…',
+    tooEarly: 'Too early to predict specific teams for this match — try a later round.',
+    whatifSubGeneric: 'Lock a result and watch the odds move live — e.g. lock Argentina to win its group'
   }
 };
 
@@ -201,6 +265,11 @@ var STARS_PLAYERS = [
   ['迪亚斯 L. Díaz', 'L. Díaz', 'col'], ['马内 / 凯塔', 'Mané', 'sen'],
   ['劳塔罗 Lautaro', 'Lautaro', 'arg'], ['菲利克斯 Félix', 'Félix', 'por']
 ];
+
+/* Marquee star duels for the radar quick-pick rail (indices into STARS_PLAYERS).
+ * First entry is the KEY DEMO Messi(arg) × Ronaldo(por). All teams differ within
+ * a pair so the meet-prob is meaningful. */
+var MARQUEE_DUELS = [[0, 1], [2, 3], [4, 5], [6, 11], [8, 9], [18, 1]];
 
 /* ---------------- helpers ------------------------------------------------ */
 function teamName(code, lang) {
@@ -241,7 +310,11 @@ var KO_MATCHES = WC.KO.slice();
 function App() {
   Component.call(this);
   var lang = 'zh';
-  try { var l = localStorage.getItem('wco-lang'); if (l === 'en' || l === 'zh') lang = l; } catch (e) {}
+  var goalHintDismissed = false;
+  try {
+    var l = localStorage.getItem('wco-lang'); if (l === 'en' || l === 'zh') lang = l;
+    if (localStorage.getItem('wco-goalhint') === '1') goalHintDismissed = true;
+  } catch (e) {}
   this.state = {
     lang: lang,
     tab: 'radar',
@@ -262,8 +335,15 @@ function App() {
     // selections
     rTeamA: 'arg', rTeamB: 'por', rMode: 'team', rStarA: 0, rStarB: 1,
     vMatch: 100,          // default to 7/11 Arrowhead QF (the showcase case)
+    vRegion: '',          // venue filter: '' | 'W' | 'E' | 'C' (location-first)
+    vRound: '',           // venue filter: '' | 'r32' | 'r16' | 'qf' | 'sf' | 'final'
+    vSort: 'date',        // venue list sort: 'date' | 'star'
     pTeam: 'usa',
     tblSort: 'champion', tblDir: -1, tblView: 'both',
+    // findability / UX
+    goalHintDismissed: goalHintDismissed,
+    sheet: null,          // searchable picker bottom-sheet: {kind, field, query} | null
+    popover: null,        // info popover key: 'meet' | 'temp' | null
     // what-if
     lockGroup: {},        // groupLetter -> winner code
     lockMatch: {}         // koMatchNo -> winner code
@@ -358,6 +438,36 @@ App.prototype.calibrateChampionWorker = function (championMarket, opts) {
   });
 };
 
+// Multi-stage IPF rake: refine the per-team Elo deltas against SEVERAL reach
+// markets (R16/QF/SF/Final + champion) at once so mid-stage reach probabilities
+// track the market — champion-only calibration systematically under-shoots them.
+App.prototype.calibrateReachWorker = function (reachMarkets, opts) {
+  var self = this;
+  if (this.worker) {
+    var id = ++this._reqId;
+    return new Promise(function (resolve, reject) {
+      self._pending[id] = { resolve: function (msg) { resolve(msg.fit); }, reject: reject };
+      self.worker.postMessage({ id: id, type: 'calibrateReach', reachMarkets: reachMarkets, opts: opts });
+    });
+  }
+  return new Promise(function (resolve) {
+    setTimeout(function () { resolve(ENG.calibrateReach(reachMarkets, opts)); }, 0);
+  });
+};
+
+// Assemble the {r16,qf,sf,final,champion} baskets calibrateReach expects from a
+// markets snapshot. Returns null if none are usable (then we keep champion-only).
+App.prototype.buildReachMarkets = function (snap, champNorm) {
+  if (!snap) return null;
+  var rm = {};
+  if (snap.reachR16 && Object.keys(snap.reachR16).length) rm.r16 = snap.reachR16;
+  if (snap.reachQF && Object.keys(snap.reachQF).length) rm.qf = snap.reachQF;
+  if (snap.reachSF && Object.keys(snap.reachSF).length) rm.sf = snap.reachSF;
+  if (snap.reachFinal && Object.keys(snap.reachFinal).length) rm.final = snap.reachFinal;
+  if (champNorm && Object.keys(champNorm).length) rm.champion = champNorm;
+  return Object.keys(rm).length ? rm : null;
+};
+
 /* ---- pipeline ---- */
 App.prototype.runBaseline = function () {
   var self = this;
@@ -387,6 +497,22 @@ App.prototype.refreshMarkets = function (force) {
       return self.calibrateChampionWorker(champ, { N: 8000 }).then(function (fit) {
         var temp = (fit && fit.s) ? fit.s : 1;
         var deltas = (fit && fit.deltas) ? fit.deltas : null;
+        // Second pass: rake the deltas toward the reach-stage markets (R16/QF/SF/
+        // Final), warm-started from the champion fit, so mid-stage reach tracks the
+        // market too. Fall back to the champion-only fit if reach data is missing
+        // or the rake errors — never block the blended render.
+        var reachMk = self.buildReachMarkets(snap, champ);
+        if (reachMk) {
+          return self.calibrateReachWorker(reachMk, { N: 8000, s: temp, deltas: deltas }).then(function (rfit) {
+            var rtemp = (rfit && rfit.s) ? rfit.s : temp;
+            var rdeltas = (rfit && rfit.deltas) ? rfit.deltas : deltas;
+            self.setState({ calib: fit, reachCalib: rfit, temp: rtemp, calibDeltas: rdeltas });
+            return self.recompute(rtemp, snap, rdeltas);
+          }, function () {
+            self.setState({ calib: fit, temp: temp, calibDeltas: deltas });
+            return self.recompute(temp, snap, deltas);
+          });
+        }
         self.setState({ calib: fit, temp: temp, calibDeltas: deltas });
         return self.recompute(temp, snap, deltas);
       });
@@ -494,6 +620,50 @@ App.prototype.clearWhatif = function () {
   this.setState({ lockGroup: {}, lockMatch: {} }, function () { self.recompute(); });
 };
 
+/* ---- findability / UX actions ---- */
+App.prototype.dismissGoalHint = function () {
+  try { localStorage.setItem('wco-goalhint', '1'); } catch (e) {}
+  this.setState({ goalHintDismissed: true });
+};
+// Open the searchable bottom-sheet picker.
+//   kind: 'team' | 'star'   field: which selection to write
+//     'team' fields -> 'rTeamA' | 'rTeamB' | 'pTeam'
+//     'star' fields -> 'rStarA' | 'rStarB'
+App.prototype.openSheet = function (kind, field) {
+  this.setState({ sheet: { kind: kind, field: field, query: '' } });
+};
+App.prototype.closeSheet = function () { this.setState({ sheet: null }); };
+App.prototype.setSheetQuery = function (q) {
+  var s = this.state.sheet; if (!s) return;
+  this.setState({ sheet: { kind: s.kind, field: s.field, query: q } });
+};
+// Commit a pick from the sheet. For teams, value = team code; for stars, value =
+// index into STARS_PLAYERS (number).
+App.prototype.pickFromSheet = function (value) {
+  var s = this.state.sheet; if (!s) return;
+  var patch = { sheet: null };
+  patch[s.field] = value;
+  this.setState(patch);
+};
+App.prototype.togglePopover = function (key) {
+  this.setState({ popover: this.state.popover === key ? null : key });
+};
+// Jump to the venue browser focused on a specific knockout match (cross-tab CTA).
+App.prototype.scoutMatch = function (no) {
+  this.setState({ tab: 'venue', vMatch: no, vRegion: '', vRound: '' });
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+};
+// Jump to the radar pre-set to a team duel (cross-tab CTA from venue browser).
+App.prototype.scoutDuel = function (codeA, codeB) {
+  this.setState({ tab: 'radar', rMode: 'team', rTeamA: codeA, rTeamB: codeB });
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+};
+// Jump to the team-path explorer for a team (cross-tab CTA).
+App.prototype.openPath = function (code) {
+  this.setState({ tab: 'path', pTeam: code });
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+};
+
 /* ====================================================================== *
  * RENDER
  * ====================================================================== */
@@ -510,6 +680,7 @@ App.prototype.render = function () {
   ${this.renderHeader(T, lang)}
   ${this.renderStatusBar(T, lang)}
   ${this.renderNav(tabs, T)}
+  ${this.renderGoalHint(T, lang)}
   <main style="min-height:60vh">
     ${st.phase === 'init' || (st.simming && !st.results)
       ? this.renderBoot(T)
@@ -521,6 +692,7 @@ App.prototype.render = function () {
       `}
     ${this.renderWhatif(T, lang)}
   </main>
+  ${this.renderSheet(T, lang)}
   <footer style="padding:22px 16px calc(34px + env(safe-area-inset-bottom));text-align:center;font-size:11px;color:#6F6856;line-height:1.7">
     ${T.footer}
     <div style="margin-top:8px"><button class="pressable" onClick=${function () { self.setLang(); }} style="background:none;border:1px solid #D5CEB8;color:#6B7263;font-weight:600;border-radius:7px;padding:4px 12px;cursor:pointer">${T.lang}</button></div>
@@ -552,7 +724,7 @@ App.prototype.renderStatusBar = function (T, lang) {
   return html`
 <div style="position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#1B2A21;color:#D8E2D5;padding:7px calc(14px + env(safe-area-inset-right)) 7px calc(14px + env(safe-area-inset-left));font-size:11.5px;border-bottom:1px solid #0E1B15">
   <span style="display:flex;align-items:center;gap:6px;font-weight:700;color:#EEF3EC"><span class="livedot"></span>${label}</span>
-  ${calibTxt && html`<span style="color:#9FB8A8">${calibTxt}</span>`}
+  ${calibTxt && html`<span style="position:relative;display:flex;align-items:center;gap:5px;color:#9FB8A8">${calibTxt} ${infoButton(self, 'temp')}${infoPopover(self, 'temp', st.popover, T.tempInfo)}</span>`}
   <span style="flex:1"></span>
   ${(st.refreshing || st.recomputing)
     ? html`<span style="display:flex;align-items:center;gap:6px;color:#E8C25A"><span style="width:11px;height:11px;border:2px solid rgba(232,194,90,.35);border-top-color:#E8C25A;border-radius:50%;display:inline-block;animation:spin .7s linear infinite"></span>${st.recomputing ? T.recomputing : T.refreshing}</span>`
@@ -577,6 +749,104 @@ App.prototype.renderNav = function (tabs, T) {
   })}
 </nav>`;
 };
+
+/* ---- goal-hint banner (one-tap orientation; dismissible, persists) ---- */
+App.prototype.renderGoalHint = function (T, lang) {
+  var st = this.state, self = this;
+  if (st.goalHintDismissed) return null;
+  return html`
+<div style="max-width:980px;margin:0 auto;padding:10px 14px 0;animation:fadeup .25s ease">
+  <div style="display:flex;align-items:flex-start;gap:10px;background:linear-gradient(135deg,#FBF4DD,#F4E9C8);border:1px solid #E6D49A;border-radius:11px;padding:11px 13px">
+    <span style="font-size:17px;flex:none;line-height:1.3">🎟️</span>
+    <div style="flex:1;font-size:12.5px;color:#5C4E22;line-height:1.55">
+      ${T.goalHint}
+      <div style="display:flex;gap:7px;margin-top:8px;flex-wrap:wrap">
+        <button class="pressable" onClick=${function () { self.setState({ tab: 'radar' }); }} style="background:#191D17;color:#F2EEE2;border:none;border-radius:7px;padding:5px 11px;font-size:11.5px;font-weight:700;cursor:pointer">⭐ ${T.goalHintRadar}</button>
+        <button class="pressable" onClick=${function () { self.setState({ tab: 'venue' }); }} style="background:#FFF;color:#191D17;border:1px solid #D8C98F;border-radius:7px;padding:5px 11px;font-size:11.5px;font-weight:700;cursor:pointer">🏟️ ${T.goalHintVenue}</button>
+      </div>
+    </div>
+    <button class="pressable" onClick=${function () { self.dismissGoalHint(); }} style="flex:none;background:none;border:none;color:#9A8A4E;font-size:11.5px;font-weight:700;cursor:pointer;padding:2px 4px">${T.dismiss} ✕</button>
+  </div>
+</div>`;
+};
+
+/* ---- searchable bottom-sheet picker (.sheet-ov / .sheet-pn) ----
+ * Replaces the small native <select> on a phone with a full-height, searchable
+ * list. Teams are grouped by ELO and filtered by name (zh + en + code); stars
+ * are filtered by player name and team. */
+App.prototype.renderSheet = function (T, lang) {
+  var st = this.state, self = this, s = st.sheet;
+  if (!s) return null;
+  var q = (s.query || '').trim().toLowerCase();
+
+  var rows;
+  if (s.kind === 'star') {
+    rows = STARS_PLAYERS.map(function (p, i) { return { i: i, p: p }; })
+      .filter(function (r) {
+        if (!q) return true;
+        var hay = (r.p[0] + ' ' + r.p[1] + ' ' + shortName(r.p[2]) + ' ' + r.p[2]).toLowerCase();
+        return hay.indexOf(q) >= 0;
+      });
+  } else {
+    rows = Object.keys(WC.TEAMS).sort(function (a, b) { return (WC.ELO[b] || 0) - (WC.ELO[a] || 0); })
+      .filter(function (c) {
+        if (!q) return true;
+        var t = WC.TEAMS[c];
+        var hay = ((t ? t[0] : '') + ' ' + (t ? (t[2] || '') : '') + ' ' + c).toLowerCase();
+        return hay.indexOf(q) >= 0;
+      });
+  }
+
+  var title = s.kind === 'star' ? T.pickAStar : T.pickATeam;
+  var placeholder = s.kind === 'star' ? T.searchStarPlaceholder : T.searchPlaceholder;
+
+  return html`
+<div class="sheet-ov" onClick=${function () { self.closeSheet(); }}>
+  <div class="sheet-pn" onClick=${function (e) { e.stopPropagation(); }}>
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid #ECE6D4">
+      <div style="flex:1;font-family:'Barlow Condensed','Noto Sans SC',sans-serif;font-size:18px;font-weight:700;color:#191D17">${title}</div>
+      <button class="pressable" onClick=${function () { self.closeSheet(); }} style="background:none;border:1px solid #D8D2BE;color:#6B7263;border-radius:7px;padding:4px 11px;font-size:12px;font-weight:600;cursor:pointer">${T.closeSheet}</button>
+    </div>
+    <div style="padding:11px 16px 8px">
+      <input autofocus value=${s.query} onInput=${function (e) { self.setSheetQuery(e.target.value); }} placeholder=${placeholder} style="width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid #D8D2BE;background:#FFF;font-size:15px;color:#191D17" />
+    </div>
+    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 10px 16px">
+      ${s.kind === 'star'
+        ? rows.map(function (r) {
+            return html`
+            <button class="presslight" onClick=${function () { self.pickFromSheet(r.i); }} style="width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;background:none;border:none;border-bottom:1px solid #F0EBDC;cursor:pointer;text-align:left">
+              <span style="font-size:18px;flex:none">${flag(r.p[2])}</span>
+              <span style="flex:1;font-size:14.5px;font-weight:600;color:#191D17">${lang === 'en' ? r.p[1] : r.p[0]}</span>
+              <span style="font-size:12px;color:#857E68">${shortName(r.p[2])}</span>
+            </button>`;
+          })
+        : rows.map(function (c) {
+            return html`
+            <button class="presslight" onClick=${function () { self.pickFromSheet(c); }} style="width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;background:none;border:none;border-bottom:1px solid #F0EBDC;cursor:pointer;text-align:left">
+              <span style="font-size:18px;flex:none">${flag(c)}</span>
+              <span style="flex:1;font-size:14.5px;font-weight:600;color:#191D17">${shortName(c)}</span>
+              <span style="font-size:11.5px;color:#857E68">${TEAM_GROUP[c] ? (TEAM_GROUP[c] + (lang === 'en' ? '' : T.groupSuffix)) : T.natTeam}</span>
+              <span style="font-size:11px;color:#A9A38C;min-width:34px;text-align:right">ELO ${WC.ELO[c] || '—'}</span>
+            </button>`;
+          })}
+      ${rows.length === 0 && html`<div style="padding:24px 14px;text-align:center;font-size:13px;color:#8B8770">∅</div>`}
+    </div>
+  </div>
+</div>`;
+};
+
+/* ---- info popover (i): small dismissible explanation card ---- */
+function infoButton(self, key) {
+  return html`<button class="pressable" onClick=${function (e) { e.stopPropagation(); self.togglePopover(key); }} style="flex:none;width:17px;height:17px;border-radius:50%;border:1px solid currentColor;background:none;color:inherit;font-size:11px;font-weight:700;line-height:1;cursor:pointer;opacity:.65;padding:0">i</button>`;
+}
+function infoPopover(self, key, activeKey, text) {
+  if (activeKey !== key) return null;
+  return html`
+  <div onClick=${function (e) { e.stopPropagation(); }} style="position:absolute;z-index:80;left:0;top:100%;margin-top:8px;width:min(82vw,300px);background:#191D17;color:#F2EEE2;border-radius:10px;padding:11px 13px;font-size:12px;line-height:1.6;box-shadow:0 6px 22px rgba(20,32,25,.32);text-align:left;white-space:normal;font-weight:400">
+    ${text}
+    <button class="pressable" onClick=${function () { self.togglePopover(key); }} style="margin-top:8px;background:none;border:1px solid rgba(244,240,228,.4);color:#F2EEE2;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer">OK</button>
+  </div>`;
+}
 
 /* ---- boot shimmer ---- */
 App.prototype.renderBoot = function (T) {
@@ -605,6 +875,40 @@ function selectBox(value, onChange, options) {
   ${options.map(function (o) { return html`<option value=${o.v} disabled=${o.dis}>${o.label}</option>`; })}
 </select>`;
 }
+/* Button that opens the searchable bottom-sheet picker. Shows the current pick. */
+function sheetTrigger(self, kind, field, label) {
+  return html`
+<button class="presslight" onClick=${function () { self.openSheet(kind, field); }} style="width:100%;display:flex;align-items:center;gap:8px;padding:11px 12px;border-radius:10px;border:1px solid #D8D2BE;background:#FFFFFF;font-size:15px;color:#191D17;font-weight:600;cursor:pointer;text-align:left">
+  <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</span>
+  <span style="flex:none;color:#857E68;font-size:12px">🔍</span>
+</button>`;
+}
+
+/* ---- marquee duel quick-pick rail (Messi vs Ronaldo etc.) ----
+ * One-tap entry into the showcase star duels. Tapping a chip switches to star
+ * mode and sets both star indices from MARQUEE_DUELS. */
+App.prototype.renderMarqueeRail = function (T, lang) {
+  var st = this.state, self = this;
+  return html`
+<div style="margin-bottom:13px">
+  <div style="display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1.5px;color:#8B8770;font-weight:700;margin-bottom:7px">
+    <span style="width:6px;height:6px;border-radius:50%;background:#C8332B"></span>${T.nowPlaying}
+  </div>
+  <div style="display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px">
+    ${MARQUEE_DUELS.map(function (d, idx) {
+      var pa = STARS_PLAYERS[d[0]], pb = STARS_PLAYERS[d[1]];
+      var on = st.rMode === 'star' && st.rStarA === d[0] && st.rStarB === d[1];
+      var nameA = lang === 'en' ? pa[1] : pa[0].split(' ')[0];
+      var nameB = lang === 'en' ? pb[1] : pb[0].split(' ')[0];
+      var label = idx === 0 ? T.tryMarquee : (nameA + ' vs ' + nameB);
+      return html`
+      <button class="pressable" onClick=${function () { self.setState({ rMode: 'star', rStarA: d[0], rStarB: d[1] }); }} style=${'flex:none;display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:20px;border:1px solid ' + (on ? '#C8332B' : '#D8D2BE') + ';background:' + (on ? '#C8332B' : '#FFF') + ';color:' + (on ? '#FFF' : '#191D17') + ';font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap'}>
+        <span>${flag(pa[2])}</span><span>${label}</span><span>${flag(pb[2])}</span>
+      </button>`;
+    })}
+  </div>
+</div>`;
+};
 
 /* ====================================================================== *
  * VIEW 1 — Star Matchup Radar
@@ -621,11 +925,6 @@ App.prototype.renderRadar = function (T, lang) {
     codeA = st.rTeamA; codeB = st.rTeamB;
     labelA = teamName(codeA, lang); labelB = teamName(codeB, lang);
   }
-
-  var teamOpts = [{ v: '', label: T.pickPlaceholder, dis: true }].concat(
-    Object.keys(WC.TEAMS).sort(function (a, b) { return (WC.ELO[b] || 0) - (WC.ELO[a] || 0); })
-      .map(function (c) { return { v: c, label: teamName(c, lang) }; }));
-  var starOpts = STARS_PLAYERS.map(function (p, i) { return { v: String(i), label: (lang === 'en' ? p[1] : p[0]) + ' · ' + shortName(p[2]) }; });
 
   var meetings = (res && codeA && codeB && codeA !== codeB)
     ? ENG.queryMatchup(res, codeA, codeB) : [];
@@ -644,32 +943,35 @@ App.prototype.renderRadar = function (T, lang) {
     })}
   </div>
 
+  ${this.renderMarqueeRail(T, lang)}
+
   <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:9px;align-items:center;margin-bottom:14px">
     <div>
       <div style="font-size:11px;letter-spacing:1px;color:#8B8770;font-weight:600;margin-bottom:5px">${st.rMode === 'star' ? T.starA : T.teamA}</div>
       ${st.rMode === 'star'
-        ? selectBox(String(st.rStarA), function (e) { self.setState({ rStarA: parseInt(e.target.value, 10) }); }, starOpts)
-        : selectBox(codeA, function (e) { self.setState({ rTeamA: e.target.value }); }, teamOpts)}
+        ? sheetTrigger(self, 'star', 'rStarA', (lang === 'en' ? STARS_PLAYERS[st.rStarA][1] : STARS_PLAYERS[st.rStarA][0]) + ' · ' + shortName(STARS_PLAYERS[st.rStarA][2]))
+        : sheetTrigger(self, 'team', 'rTeamA', flag(codeA) + ' ' + shortName(codeA))}
     </div>
     <div style="font-family:'Anton',sans-serif;font-size:20px;color:#C8332B;padding-top:18px">VS</div>
     <div>
       <div style="font-size:11px;letter-spacing:1px;color:#8B8770;font-weight:600;margin-bottom:5px">${st.rMode === 'star' ? T.starB : T.teamB}</div>
       ${st.rMode === 'star'
-        ? selectBox(String(st.rStarB), function (e) { self.setState({ rStarB: parseInt(e.target.value, 10) }); }, starOpts)
-        : selectBox(codeB, function (e) { self.setState({ rTeamB: e.target.value }); }, teamOpts)}
+        ? sheetTrigger(self, 'star', 'rStarB', (lang === 'en' ? STARS_PLAYERS[st.rStarB][1] : STARS_PLAYERS[st.rStarB][0]) + ' · ' + shortName(STARS_PLAYERS[st.rStarB][2]))
+        : sheetTrigger(self, 'team', 'rTeamB', flag(codeB) + ' ' + shortName(codeB))}
     </div>
   </div>
 
   ${codeA === codeB
     ? html`<div style="font-size:13px;color:#A23227;background:#FBEDEA;border:1px solid #E3C7C2;border-radius:10px;padding:12px 14px">${T.samePick}</div>`
     : html`
-  <div style="background:linear-gradient(135deg,#14261E,#0E1B15);color:#F4F0E4;border-radius:14px;padding:16px;text-align:center;margin-bottom:14px">
+  <div style="position:relative;background:linear-gradient(135deg,#14261E,#0E1B15);color:#F4F0E4;border-radius:14px;padding:16px;text-align:center;margin-bottom:14px">
     <div style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:700">
       <span>${flag(codeA)} ${labelA}</span><span style="color:#E8C25A">⚔</span><span>${flag(codeB)} ${labelB}</span>
     </div>
-    <div style="font-size:11px;letter-spacing:2px;color:#9FB8A8;margin-top:12px">${T.meetProb}</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;letter-spacing:2px;color:#9FB8A8;margin-top:12px">${T.meetProb} ${infoButton(self, 'meet')}</div>
     <div style="font-family:'Anton',sans-serif;font-size:46px;line-height:1.1;margin-top:2px;color:${totalProb > 0.001 ? '#E8C25A' : '#7C8C82'}">${pct(totalProb, totalProb < 0.1 ? 2 : 1)}</div>
     ${sameGroup && html`<div style="font-size:11px;color:#C8A95A;margin-top:6px">⚠ ${T.sameGroupNote}</div>`}
+    ${infoPopover(self, 'meet', st.popover, T.meetInfo)}
   </div>
 
   ${meetings.length === 0
@@ -691,11 +993,40 @@ App.prototype.renderRadar = function (T, lang) {
           </div>
           <div style="font-size:12.5px;color:#6B7263;margin-top:5px">📍 <b style="color:#191D17;font-weight:600">${m.venueName}</b> · ${m.city}</div>
           <div style="font-size:12px;color:#6B7263;margin-top:2px">🗓️ ${fmtDate(m.date)} ${weekday(m.date, lang)}</div>
+          <button class="pressable" onClick=${function () { self.scoutMatch(m.matchNo); }} style=${'margin-top:9px;display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:6px 11px;font-size:11.5px;font-weight:700;cursor:pointer;border:1px solid ' + (best ? '#E0C77F' : '#D8D2BE') + ';background:' + (best ? '#FBF4DD' : '#FAF8F0') + ';color:#7A5A00'}>🏟️ ${T.scoutInVenue} →</button>
         </div>
       </div>`;
     })}`}
   `}
 </section>`;
+};
+
+/* ---- venue location-first filters (region / round / sort) ---- */
+App.prototype.renderVenueFilters = function (T, lang, count) {
+  var st = this.state, self = this;
+  function chip(active, label, onClick) {
+    return html`<button class="pressable" onClick=${onClick} style=${'flex:none;padding:6px 12px;border-radius:18px;border:1px solid ' + (active ? '#191D17' : '#D8D2BE') + ';background:' + (active ? '#191D17' : '#FFF') + ';color:' + (active ? '#F2EEE2' : '#191D17') + ';font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap'}>${label}</button>`;
+  }
+  var regions = [['W', T.regionW], ['E', T.regionE], ['C', T.regionC]];
+  var rounds = [['r32', T.st.r32], ['r16', T.st.r16], ['qf', T.st.qf], ['sf', T.st.sf], ['final', T.st.final]];
+  return html`
+<div style="background:#FFF;border:1px solid #DCD6C2;border-radius:12px;padding:11px 12px;margin-bottom:12px">
+  <div style="display:flex;align-items:center;gap:7px;font-size:11px;letter-spacing:1px;color:#8B8770;font-weight:700;margin-bottom:7px">${T.byCity}</div>
+  <div style="display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;margin-bottom:9px">
+    ${chip(!st.vRegion, T.allGroups, function () { self.setState({ vRegion: '' }); })}
+    ${regions.map(function (r) { return chip(st.vRegion === r[0], r[1], function () { self.setState({ vRegion: st.vRegion === r[0] ? '' : r[0] }); }); })}
+  </div>
+  <div style="display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;margin-bottom:9px">
+    ${chip(!st.vRound, T.allRounds, function () { self.setState({ vRound: '' }); })}
+    ${rounds.map(function (r) { return chip(st.vRound === r[0], r[1], function () { self.setState({ vRound: st.vRound === r[0] ? '' : r[0] }); }); })}
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <span style="font-size:11px;color:#8B8770;font-weight:600;margin-right:2px">${count} ${T.matchesHere}</span>
+    <span style="flex:1"></span>
+    ${chip(st.vSort === 'date', '🗓️ ' + T.byDate, function () { self.setState({ vSort: 'date' }); })}
+    ${chip(st.vSort === 'star', '⭐ ' + T.sortByStar, function () { self.setState({ vSort: 'star' }); })}
+  </div>
+</div>`;
 };
 
 /* ====================================================================== *
@@ -704,18 +1035,53 @@ App.prototype.renderRadar = function (T, lang) {
 App.prototype.renderVenue = function (T, lang) {
   var st = this.state, self = this, res = st.results;
 
-  // KO matches sorted by date then match number; build picker label.
-  var matches = KO_MATCHES.slice().sort(function (a, b) {
-    if (a.d !== b.d) return a.d < b.d ? -1 : 1; return a.no - b.no;
+  // round-bucket of a KO match number, for the round filter.
+  function roundKey(no) {
+    if (no >= 73 && no <= 88) return 'r32';
+    if (no >= 89 && no <= 96) return 'r16';
+    if (no >= 97 && no <= 100) return 'qf';
+    if (no === 101 || no === 102) return 'sf';
+    return 'final'; // 103 (3rd) + 104 (final) bucket together under Final
+  }
+  // per-match star power, memoized on the results object so the location-first
+  // star sort doesn't recompute queryVenue for all 32 matches every render.
+  function starPowerOf(m) {
+    if (!res) return 0;
+    if (!res._starPowerCache) res._starPowerCache = {};
+    if (res._starPowerCache[m.no] != null) return res._starPowerCache[m.no];
+    var q = ENG.queryVenue(res, m.v, m.d), sp = 0;
+    q.appearances.forEach(function (a) { sp += a.prob * (WC.STARS[a.code] || 1); });
+    res._starPowerCache[m.no] = sp;
+    return sp;
+  }
+
+  // all KO matches, then apply location-first filters (region + round).
+  var allMatches = KO_MATCHES.slice();
+  var matches = allMatches.filter(function (m) {
+    var Vv = WC.VEN[m.v];
+    if (st.vRegion && (!Vv || Vv[2] !== st.vRegion)) return false;
+    if (st.vRound && roundKey(m.no) !== st.vRound) return false;
+    return true;
   });
-  var matchOpts = matches.map(function (m) {
-    var V = WC.VEN[m.v];
-    return { v: String(m.no), label: 'M' + m.no + ' · ' + roundLabelZh(m.no, lang) + ' · ' + fmtDate(m.d) + ' · ' + (V ? V[0] : m.v) + ' / ' + (V ? V[1] : '') };
+  // sort by date (default) or by star power (location-first "best match" first).
+  matches.sort(function (a, b) {
+    if (st.vSort === 'star') {
+      var d = starPowerOf(b) - starPowerOf(a);
+      if (Math.abs(d) > 1e-9) return d > 0 ? 1 : -1;
+    }
+    if (a.d !== b.d) return a.d < b.d ? -1 : 1;
+    return a.no - b.no;
   });
 
+  var matchOpts = matches.map(function (m) {
+    var Vv = WC.VEN[m.v];
+    return { v: String(m.no), label: 'M' + m.no + ' · ' + roundLabelZh(m.no, lang) + ' · ' + fmtDate(m.d) + ' · ' + (Vv ? Vv[0] : m.v) + ' / ' + (Vv ? Vv[1] : '') };
+  });
+
+  // keep the selected match valid under the active filter; else fall to first.
   var sel = null;
   for (var i = 0; i < matches.length; i++) if (matches[i].no === st.vMatch) { sel = matches[i]; break; }
-  if (!sel) sel = matches[0];
+  if (!sel) sel = matches.length ? matches[0] : allMatches[0];
 
   var vq = (res && sel) ? ENG.queryVenue(res, sel.v, sel.d) : { pairs: [], appearances: [] };
 
@@ -737,6 +1103,8 @@ App.prototype.renderVenue = function (T, lang) {
 <section style="max-width:820px;margin:0 auto;padding:16px 14px 10px;animation:fadeup .25s ease">
   ${sectionTitle('🏟️ ' + T.venueTitle)}
   ${introBox(T.venueIntro)}
+
+  ${this.renderVenueFilters(T, lang, matches.length)}
 
   <div style="font-size:11px;letter-spacing:1px;color:#8B8770;font-weight:600;margin-bottom:5px">${T.pickMatch}</div>
   ${selectBox(String(sel.no), function (e) { self.setState({ vMatch: parseInt(e.target.value, 10) }); }, matchOpts)}
@@ -768,24 +1136,28 @@ App.prototype.renderVenue = function (T, lang) {
     : pairs.map(function (p) {
       var a = p.pair[0], b = p.pair[1];
       return html`
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid #EFEADB">
+      <button class="presslight" title=${T.seeInRadar} onClick=${function () { self.scoutDuel(a, b); }} style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 6px;border:none;border-bottom:1px solid #EFEADB;background:none;cursor:pointer;text-align:left">
         <span style="min-width:120px;flex:none;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${flag(a)} ${shortName(a)} <span style="color:#857E68;font-size:11px">${T.vs}</span> ${flag(b)} ${shortName(b)}</span>
         <span style="flex:1;height:8px;border-radius:4px;background:#EFEADB;overflow:hidden"><i style=${'display:block;height:100%;width:' + Math.max(2, Math.round(p.prob / maxPair * 100)) + '%;background:#0E8C4F'}></i></span>
         <span style="width:50px;flex:none;text-align:right;font-size:12.5px;font-weight:700">${pct(p.prob, 1)}</span>
-      </div>`;
+        <span style="flex:none;color:#857E68;font-size:13px">›</span>
+      </button>`;
     })}
+  ${pairs.length > 0 && html`<div style="font-size:10.5px;color:#A9A38C;margin:6px 2px 0">${T.seeInRadar} →</div>`}
 
   <div style="font-family:'Barlow Condensed','Noto Sans SC',sans-serif;font-size:17px;font-weight:700;margin:18px 2px 8px">${T.marqueeApp}</div>
   ${apps.map(function (a) {
     var star = (WC.STARS[a.code] || 1) >= 4;
     return html`
-    <div style="display:flex;align-items:center;gap:8px;padding:5px 6px">
+    <button class="presslight" title=${T.openInPath} onClick=${function () { self.openPath(a.code); }} style="width:100%;display:flex;align-items:center;gap:8px;padding:5px 6px;border:none;background:none;cursor:pointer;text-align:left">
       <span style="font-size:16px;flex:none">${flag(a.code)}</span>
       <span style="min-width:66px;flex:none;font-size:13px;font-weight:600;color:${star ? '#191D17' : '#3D443C'}">${shortName(a.code)}${star ? ' ⭐' : ''}</span>
       <span style="flex:1;height:8px;border-radius:4px;background:#EFEADB;overflow:hidden"><i style=${'display:block;height:100%;width:' + Math.max(2, Math.round(a.prob / maxApp * 100)) + '%;background:' + (star ? '#B8860B' : '#1D5FBF')}></i></span>
       <span style="width:50px;flex:none;text-align:right;font-size:12.5px;font-weight:700">${pct(a.prob, 1)}</span>
-    </div>`;
+      <span style="flex:none;color:#857E68;font-size:13px">›</span>
+    </button>`;
   })}
+  ${apps.length > 0 && html`<div style="font-size:10.5px;color:#A9A38C;margin:6px 2px 0">${T.openInPath} →</div>`}
 </section>`;
 };
 
@@ -795,8 +1167,6 @@ App.prototype.renderVenue = function (T, lang) {
 App.prototype.renderPath = function (T, lang) {
   var st = this.state, self = this, res = st.results;
   var code = st.pTeam;
-  var teamOpts = Object.keys(WC.TEAMS).sort(function (a, b) { return (WC.ELO[b] || 0) - (WC.ELO[a] || 0); })
-    .map(function (c) { return { v: c, label: teamName(c, lang) }; });
 
   var stage = (res && res.teamStage[code]) ? res.teamStage[code] : null;
   var path = (res && res.teamPath[code]) ? res.teamPath[code] : null;
@@ -813,7 +1183,7 @@ App.prototype.renderPath = function (T, lang) {
   ${introBox(T.pathIntro)}
 
   <div style="font-size:11px;letter-spacing:1px;color:#8B8770;font-weight:600;margin-bottom:5px">${T.pickTeam}</div>
-  ${selectBox(code, function (e) { self.setState({ pTeam: e.target.value }); }, teamOpts)}
+  ${sheetTrigger(self, 'team', 'pTeam', flag(code) + ' ' + teamName(code, lang))}
 
   ${!stage ? html`<div class="shim" style="height:80px;border-radius:12px;margin-top:14px"></div>` : html`
   <div style="background:linear-gradient(135deg,#14261E,#0E1B15);color:#F4F0E4;border-radius:14px;padding:16px;margin:14px 0 12px;text-align:center">
